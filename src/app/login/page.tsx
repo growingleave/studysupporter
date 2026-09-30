@@ -10,7 +10,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") || "/passages";
 
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -21,7 +21,7 @@ function LoginForm() {
     setLoading(true);
 
     const result = await signIn("credentials", {
-      email,
+      username,
       password,
       redirect: false,
     });
@@ -29,7 +29,7 @@ function LoginForm() {
     setLoading(false);
 
     if (result?.error) {
-      setError("이메일 또는 비밀번호가 올바르지 않습니다.");
+      setError("아이디 또는 비밀번호가 올바르지 않습니다.");
       return;
     }
 
@@ -42,15 +42,15 @@ function LoginForm() {
       <h1 className="text-2xl font-bold text-center">로그인</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">
-            이메일
+          <label htmlFor="username" className="block text-sm font-medium mb-1">
+            아이디
           </label>
           <input
-            id="email"
-            type="email"
+            id="username"
+            type="text"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
             className="w-full rounded-lg border border-gray-300 px-4 py-3 text-base focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
