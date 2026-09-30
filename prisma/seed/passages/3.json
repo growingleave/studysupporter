@@ -1,0 +1,11 @@
+{
+  "id": 3,
+  "title": "Test Passage: A Simple Story",
+  "englishText": "This is a simple test passage. The weather today is very cold, but the students feel happy because class ends early. Some lessons are difficult, while others are easy. It is important to study every day, even when the material seems boring. A good student is never lazy, and always tries to finish tasks quickly.",
+  "analysis": {
+    "topic": "단어체크 기능 테스트를 위한 간단한 지문",
+    "fullTranslation": "이것은 간단한 테스트 지문이다. (도입) 오늘 날씨는 매우 춥지만, 학생들은 수업이 일찍 끝나서 행복함을 느낀다. 어떤 수업은 어렵고, 다른 수업은 쉽다. (대조: 난이도 비교) 내용이 지루하게 느껴질 때조차 매일 공부하는 것이 중요하다. 좋은 학생은 절대 게으르지 않고, 항상 과제를 빠르게 끝내려고 노력한다. (결론)",
+    "summaryTranslation": "쉬운 단어(cold, happy, difficult, easy, important, boring, lazy, quickly 등)를 포함한 테스트용 지문으로, 사전 연동 단어체크 기능을 확인하기 위한 것이다.",
+    "keySentence": "It is important to study every day, even when the material seems boring."
+  }
+}
