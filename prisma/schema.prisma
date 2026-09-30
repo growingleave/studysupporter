@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String           @id @default(cuid())
+  email        String           @unique
+  passwordHash String
+  createdAt    DateTime         @default(now())
+  vocabulary   UserVocabulary[]
+  starred      StarredPassage[]
+}
+
+model Passage {
+  id          Int              @id @default(autoincrement())
+  title       String
+  englishText String
+  createdAt   DateTime         @default(now())
+  analysis    PassageAnalysis?
+  vocabulary  UserVocabulary[]
+  starred     StarredPassage[]
+}
+
+model PassageAnalysis {
+  id                 Int     @id @default(autoincrement())
+  passageId          Int     @unique
+  passage            Passage @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  topic              String
+  fullTranslation    String
+  summaryTranslation String?
+  keySentence        String
+}
+
+model Word {
+  id         String   @id @default(cuid())
+  word       String   @unique
+  definition String
+  synonyms   String
+  antonyms   String
+  fetchedAt  DateTime @default(now())
+}
+
+model UserVocabulary {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  word      String
+  passageId Int?
+  passage   Passage? @relation(fields: [passageId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, word])
+}
+
+model StarredPassage {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  passageId Int
+  passage   Passage  @relation(fields: [passageId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, passageId])
+}
