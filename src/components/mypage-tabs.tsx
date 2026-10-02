@@ -5,14 +5,19 @@ import { useState } from "react";
 
 type Translated = { en: string; ko: string | null };
 
+type Meaning = {
+  en: string;
+  ko: string | null;
+  synonyms: Translated[];
+  antonyms: Translated[];
+};
+
 type VocabEntry = {
   word: string;
   passageId: number | null;
   passageTitle: string | null;
   koreanMeaning: string | null;
-  definitions: { partOfSpeech: string; meanings: Translated[] }[];
-  synonyms: Translated[];
-  antonyms: Translated[];
+  definitions: { partOfSpeech: string; meanings: Meaning[] }[];
 };
 
 function joinTranslated(items: Translated[]) {
@@ -72,18 +77,24 @@ export function MyPageTabs({
                   {v.koreanMeaning && (
                     <p className="font-medium text-gray-900">{v.koreanMeaning}</p>
                   )}
-                  {v.definitions.slice(0, 1).map((d, i) => (
-                    <p key={i} className="text-gray-700">
-                      <span className="font-medium text-blue-700">{d.partOfSpeech}</span>{" "}
-                      {d.meanings[0]?.ko ?? d.meanings[0]?.en}
-                    </p>
-                  ))}
-                  {v.synonyms.length > 0 && (
-                    <p className="text-gray-600">동의어: {joinTranslated(v.synonyms)}</p>
-                  )}
-                  {v.antonyms.length > 0 && (
-                    <p className="text-gray-600">반의어: {joinTranslated(v.antonyms)}</p>
-                  )}
+                  {v.definitions.slice(0, 1).map((d, i) => {
+                    const m = d.meanings[0];
+                    if (!m) return null;
+                    return (
+                      <div key={i} className="text-gray-700">
+                        <p>
+                          <span className="font-medium text-blue-700">{d.partOfSpeech}</span>{" "}
+                          {m.ko ?? m.en}
+                        </p>
+                        {m.synonyms.length > 0 && (
+                          <p className="text-gray-600">동의어: {joinTranslated(m.synonyms)}</p>
+                        )}
+                        {m.antonyms.length > 0 && (
+                          <p className="text-gray-600">반의어: {joinTranslated(m.antonyms)}</p>
+                        )}
+                      </div>
+                    );
+                  })}
                   {v.passageId && v.passageTitle && (
                     <Link
                       href={`/passages/${v.passageId}`}

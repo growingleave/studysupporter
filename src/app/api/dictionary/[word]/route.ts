@@ -24,11 +24,8 @@ export async function GET(
   if (cached?.koreanMeaning) {
     return NextResponse.json({
       word: cached.word,
-      resolvedWord: cached.resolvedWord,
       koreanMeaning: cached.koreanMeaning,
       definitions: JSON.parse(cached.definition),
-      synonyms: JSON.parse(cached.synonyms),
-      antonyms: JSON.parse(cached.antonyms),
     });
   }
 
@@ -45,20 +42,20 @@ export async function GET(
       update: {
         resolvedWord,
         definition: JSON.stringify(entry.definitions),
-        synonyms: JSON.stringify(entry.synonyms),
-        antonyms: JSON.stringify(entry.antonyms),
+        synonyms: "[]",
+        antonyms: "[]",
         koreanMeaning: entry.koreanMeaning,
       },
       create: {
         word: raw,
         resolvedWord,
         definition: JSON.stringify(entry.definitions),
-        synonyms: JSON.stringify(entry.synonyms),
-        antonyms: JSON.stringify(entry.antonyms),
+        synonyms: "[]",
+        antonyms: "[]",
         koreanMeaning: entry.koreanMeaning,
       },
     })
     .catch(() => null); // benign race: another request already wrote this word
 
-  return NextResponse.json({ ...entry, word: raw, resolvedWord });
+  return NextResponse.json({ word: raw, koreanMeaning: entry.koreanMeaning, definitions: entry.definitions });
 }

@@ -2,12 +2,17 @@ import lemmatizer from "wink-lemmatizer";
 
 type Translated = { en: string; ko: string | null };
 
+type Meaning = {
+  en: string;
+  ko: string | null;
+  synonyms: Translated[];
+  antonyms: Translated[];
+};
+
 export type DictionaryEntry = {
   word: string; // resolved base form (English)
   koreanMeaning: string | null; // Korean gloss of the base form
-  definitions: { partOfSpeech: string; meanings: Translated[] }[];
-  synonyms: Translated[];
-  antonyms: Translated[];
+  definitions: { partOfSpeech: string; meanings: Meaning[] }[];
 };
 
 const WORD_RE = /^[a-zA-Z][a-zA-Z'-]{0,44}$/;
@@ -19,6 +24,9 @@ export function isValidWord(word: string): boolean {
 const UA =
   "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
+type RawMeaning = { text: string; synonyms: string[]; antonyms: string[] };
+type RawDefinition = { partOfSpeech: string; meanings: RawMeaning[] };
+
 type FreeDictionaryMeaning = {
   partOfSpeech: string;
   definitions: { definition: string; synonyms?: string[]; antonyms?: string[] }[];
@@ -29,38 +37,40 @@ type FreeDictionaryResponse = {
   meanings: FreeDictionaryMeaning[];
 }[];
 
-async function fetchDefinitions(word: string) {
-  const empty = { definitions: [], inlineSynonyms: [], inlineAntonyms: [] };
-
+// Keeps each definition's own synonyms/antonyms attached to it, rather
+// than flattening them into one word-level list, so the UI can show
+// "뜻 1 -> 그 뜻의 동의어/반의어 -> 뜻 2 -> ..." instead of lumping
+// every synonym/antonym from every sense together at the bottom.
+async function fetchDefinitions(word: string): Promise<RawDefinition[]> {
   try {
     const res = await fetch(
       `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
       { signal: AbortSignal.timeout(8000) }
     );
 
-    if (!res.ok) return empty;
+    if (!res.ok) return [];
 
     const data = (await res.json()) as FreeDictionaryResponse;
-    const definitions: { partOfSpeech: string; meanings: string[] }[] = [];
-    const inlineSynonyms = new Set<string>();
-    const inlineAntonyms = new Set<string>();
+    const definitions: RawDefinition[] = [];
 
     for (const entry of data) {
       for (const meaning of entry.meanings ?? []) {
-        const meanings = (meaning.definitions ?? []).map((d) => d.definition).filter(Boolean);
+        const meanings: RawMeaning[] = (meaning.definitions ?? [])
+          .filter((d) => d.definition)
+          .map((d) => ({
+            text: d.definition,
+            synonyms: (d.synonyms ?? []).slice(0, 5),
+            antonyms: (d.antonyms ?? []).slice(0, 5),
+          }));
         if (meanings.length > 0) {
           definitions.push({ partOfSpeech: meaning.partOfSpeech, meanings });
-        }
-        for (const d of meaning.definitions ?? []) {
-          for (const s of d.synonyms ?? []) inlineSynonyms.add(s);
-          for (const a of d.antonyms ?? []) inlineAntonyms.add(a);
         }
       }
     }
 
-    return { definitions, inlineSynonyms: [...inlineSynonyms], inlineAntonyms: [...inlineAntonyms] };
+    return definitions;
   } catch {
-    return empty;
+    return [];
   }
 }
 
@@ -72,8 +82,9 @@ const DATAMUSE_POS_LABEL: Record<string, string> = {
 };
 
 // Fallback definition source (WordNet via Datamuse) for when
-// dictionaryapi.dev is flaky or has no entry for this word.
-async function fetchDatamuseDefinitions(word: string) {
+// dictionaryapi.dev is flaky or has no entry for this word. Datamuse's
+// md=d doesn't give per-definition synonyms/antonyms, so those start empty.
+async function fetchDatamuseDefinitions(word: string): Promise<RawDefinition[]> {
   try {
     const res = await fetch(
       `https://api.datamuse.com/words?sp=${encodeURIComponent(word)}&md=d&max=1`,
@@ -95,7 +106,10 @@ async function fetchDatamuseDefinitions(word: string) {
       grouped.get(label)!.push(text);
     }
 
-    return [...grouped.entries()].map(([partOfSpeech, meanings]) => ({ partOfSpeech, meanings }));
+    return [...grouped.entries()].map(([partOfSpeech, texts]) => ({
+      partOfSpeech,
+      meanings: texts.map((text) => ({ text, synonyms: [], antonyms: [] })),
+    }));
   } catch {
     return [];
   }
@@ -104,7 +118,7 @@ async function fetchDatamuseDefinitions(word: string) {
 async function fetchDatamuse(word: string, rel: "rel_syn" | "rel_ant") {
   try {
     const res = await fetch(
-      `https://api.datamuse.com/words?${rel}=${encodeURIComponent(word)}&max=8`,
+      `https://api.datamuse.com/words?${rel}=${encodeURIComponent(word)}&max=5`,
       { signal: AbortSignal.timeout(8000) }
     );
     if (!res.ok) return [];
@@ -170,14 +184,14 @@ async function translateBatchToKorean(texts: string[]): Promise<(string | null)[
 
 export async function lookupWord(word: string): Promise<DictionaryEntry | null> {
   let resolvedWord = word;
-  let defResult = await fetchDefinitions(word);
+  let rawDefinitions = await fetchDefinitions(word);
 
-  if (defResult.definitions.length === 0) {
+  if (rawDefinitions.length === 0) {
     for (const candidate of lemmaCandidates(word)) {
-      const candidateResult = await fetchDefinitions(candidate);
-      if (candidateResult.definitions.length > 0) {
+      const candidateDefs = await fetchDefinitions(candidate);
+      if (candidateDefs.length > 0) {
         resolvedWord = candidate;
-        defResult = candidateResult;
+        rawDefinitions = candidateDefs;
         break;
       }
     }
@@ -185,46 +199,55 @@ export async function lookupWord(word: string): Promise<DictionaryEntry | null> 
 
   // dictionaryapi.dev can be flaky; fall back to Datamuse's own
   // (WordNet-sourced) definitions before giving up entirely.
-  if (defResult.definitions.length === 0) {
-    const fallbackDefs = await fetchDatamuseDefinitions(resolvedWord);
-    if (fallbackDefs.length > 0) {
-      defResult = { ...defResult, definitions: fallbackDefs };
-    }
+  if (rawDefinitions.length === 0) {
+    rawDefinitions = await fetchDatamuseDefinitions(resolvedWord);
   }
 
-  const [datamuseSyn, datamuseAnt] = await Promise.all([
-    fetchDatamuse(resolvedWord, "rel_syn"),
-    fetchDatamuse(resolvedWord, "rel_ant"),
-  ]);
-
-  const synonyms = [...new Set([...defResult.inlineSynonyms, ...datamuseSyn])].slice(0, 8);
-  const antonyms = [...new Set([...defResult.inlineAntonyms, ...datamuseAnt])].slice(0, 8);
-
-  if (defResult.definitions.length === 0 && synonyms.length === 0 && antonyms.length === 0) {
+  if (rawDefinitions.length === 0) {
     return null;
   }
 
-  // One combined batch: [headword, ...every meaning, ...synonyms, ...antonyms]
-  const meaningTexts = defResult.definitions.flatMap((d) => d.meanings);
-  const batchInput = [resolvedWord, ...meaningTexts, ...synonyms, ...antonyms];
+  // If dictionaryapi.dev gave no synonyms/antonyms for any individual
+  // sense, fall back to Datamuse's general related words, attached to
+  // the first sense only (better than not showing any at all).
+  const hasPerMeaningSynAnt = rawDefinitions.some((d) =>
+    d.meanings.some((m) => m.synonyms.length > 0 || m.antonyms.length > 0)
+  );
+  if (!hasPerMeaningSynAnt) {
+    const [datamuseSyn, datamuseAnt] = await Promise.all([
+      fetchDatamuse(resolvedWord, "rel_syn"),
+      fetchDatamuse(resolvedWord, "rel_ant"),
+    ]);
+    const firstMeaning = rawDefinitions[0]?.meanings[0];
+    if (firstMeaning) {
+      firstMeaning.synonyms = datamuseSyn;
+      firstMeaning.antonyms = datamuseAnt;
+    }
+  }
+
+  const flatMeanings = rawDefinitions.flatMap((d) => d.meanings);
+  const meaningTexts = flatMeanings.map((m) => m.text);
+  const synAntWords = flatMeanings.flatMap((m) => [...m.synonyms, ...m.antonyms]);
+
+  const batchInput = [resolvedWord, ...meaningTexts, ...synAntWords];
   const translated = await translateBatchToKorean(batchInput);
 
-  let i = 0;
-  const koreanMeaning = translated[i++] ?? null;
+  let textCursor = 1; // index 0 was the headword
+  let synAntCursor = 1 + meaningTexts.length;
 
-  const definitions = defResult.definitions.map((d) => ({
+  const definitions = rawDefinitions.map((d) => ({
     partOfSpeech: d.partOfSpeech,
-    meanings: d.meanings.map((en): Translated => ({ en, ko: translated[i++] ?? null })),
+    meanings: d.meanings.map((m): Meaning => ({
+      en: m.text,
+      ko: translated[textCursor++] ?? null,
+      synonyms: m.synonyms.map((en): Translated => ({ en, ko: translated[synAntCursor++] ?? null })),
+      antonyms: m.antonyms.map((en): Translated => ({ en, ko: translated[synAntCursor++] ?? null })),
+    })),
   }));
-
-  const synonymsTranslated = synonyms.map((en): Translated => ({ en, ko: translated[i++] ?? null }));
-  const antonymsTranslated = antonyms.map((en): Translated => ({ en, ko: translated[i++] ?? null }));
 
   return {
     word: resolvedWord,
-    koreanMeaning,
+    koreanMeaning: translated[0] ?? null,
     definitions,
-    synonyms: synonymsTranslated,
-    antonyms: antonymsTranslated,
   };
 }
