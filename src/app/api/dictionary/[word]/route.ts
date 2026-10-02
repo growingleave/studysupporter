@@ -19,7 +19,9 @@ export async function GET(
   }
 
   const cached = await prisma.word.findUnique({ where: { word: raw } });
-  if (cached) {
+  // Only trust the cache if it actually has a definition - earlier lookups
+  // that came up empty (upstream flakiness, etc.) shouldn't stick forever.
+  if (cached && JSON.parse(cached.definition).length > 0) {
     return NextResponse.json({
       word: cached.word,
       definitions: JSON.parse(cached.definition),
@@ -34,15 +36,21 @@ export async function GET(
   }
 
   await prisma.word
-    .create({
-      data: {
+    .upsert({
+      where: { word: raw },
+      update: {
+        definition: JSON.stringify(entry.definitions),
+        synonyms: JSON.stringify(entry.synonyms),
+        antonyms: JSON.stringify(entry.antonyms),
+      },
+      create: {
         word: raw,
         definition: JSON.stringify(entry.definitions),
         synonyms: JSON.stringify(entry.synonyms),
         antonyms: JSON.stringify(entry.antonyms),
       },
     })
-    .catch(() => null); // benign race: another request already cached this word
+    .catch(() => null); // benign race: another request already wrote this word
 
   return NextResponse.json(entry);
 }
