@@ -31,9 +31,9 @@
 2. **Postgres 추가**: 프로젝트의 Storage 탭 → Create Database → Postgres 선택. 생성하면 `DATABASE_URL` 환경변수가 프로젝트에 자동으로 주입됩니다.
 3. **AUTH_SECRET 등록**: 프로젝트 Settings → Environment Variables에 `AUTH_SECRET`을 추가합니다. 값은 `openssl rand -base64 32`로 새로 생성해서 넣으세요(로컬 개발용과 같은 값이어도 되지만, 프로덕션은 별도로 생성하는 걸 권장합니다).
 4. **Deploy**: Deploy 버튼을 누릅니다. 빌드 시 `vercel-build` 스크립트(`prisma migrate deploy && next build`)가 자동 실행되어 DB 테이블이 생성됩니다.
-5. **지문 데이터 채우기**: 배포 직후에는 지문이 비어 있습니다. 아래 URL을 브라우저에서 한 번 열면 됩니다(터미널/Node.js 설치 불필요):
+5. **지문 데이터 채우기**: 배포 직후에는 지문이 비어 있습니다. 배포된 사이트에 **로그인한 상태로** 아래 URL을 열면 됩니다(터미널/Node.js 설치 불필요, 별도 비밀번호도 불필요 — 로그인 세션만 있으면 됩니다):
    ```
-   https://<project>.vercel.app/api/admin/seed?secret=<AUTH_SECRET 값>
+   https://<project>.vercel.app/api/admin/seed
    ```
    `{"ok":true,"seeded":[1,2,3]}` 같은 응답이 보이면 성공입니다. `prisma/seed/passages/`에 새 지문 JSON을 추가해 배포한 뒤 같은 URL을 다시 열면 새 지문이 반영됩니다(코드를 새로 배포할 때마다 자동으로 재시딩되지는 않습니다 — 지문 추가는 의도적으로 트리거하는 별도 작업입니다).
 
