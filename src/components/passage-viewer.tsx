@@ -9,15 +9,44 @@ type Analysis = {
   keySentence: string;
 };
 
+type Translated = { en: string; ko: string | null };
+
 type DictionaryEntry = {
   word: string;
+  resolvedWord: string | null;
   koreanMeaning: string | null;
-  definitions: { partOfSpeech: string; meanings: string[] }[];
-  synonyms: string[];
-  antonyms: string[];
+  definitions: { partOfSpeech: string; meanings: Translated[] }[];
+  synonyms: Translated[];
+  antonyms: Translated[];
 };
 
 const WORD_TOKEN_RE = /[A-Za-z']+|[^A-Za-z']+/g;
+
+const POS_KO: Record<string, string> = {
+  noun: "명사",
+  verb: "동사",
+  adjective: "형용사",
+  adverb: "부사",
+  pronoun: "대명사",
+  preposition: "전치사",
+  conjunction: "접속사",
+  interjection: "감탄사",
+  determiner: "한정사",
+};
+
+function TranslatedList({ items }: { items: Translated[] }) {
+  return (
+    <>
+      {items.map((item, i) => (
+        <span key={item.en}>
+          {item.en}
+          {item.ko && <span className="text-gray-500">({item.ko})</span>}
+          {i < items.length - 1 && ", "}
+        </span>
+      ))}
+    </>
+  );
+}
 
 export function PassageViewer({
   passageId,
@@ -172,7 +201,7 @@ export function PassageViewer({
             onClick={() => setSelectedWord(null)}
           />
           <div className="fixed inset-x-0 bottom-0 z-50 max-h-[70vh] overflow-y-auto rounded-t-2xl bg-white p-5 shadow-2xl sm:inset-x-auto sm:inset-y-0 sm:right-0 sm:left-auto sm:w-96 sm:max-h-none sm:rounded-none sm:rounded-l-2xl">
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex items-start justify-between mb-1">
               <h2 className="text-xl font-bold">{selectedWord}</h2>
               <button
                 onClick={() => setSelectedWord(null)}
@@ -182,6 +211,9 @@ export function PassageViewer({
                 ×
               </button>
             </div>
+            {wordData?.resolvedWord && (
+              <p className="text-xs text-gray-500 mb-2">원형: {wordData.resolvedWord}</p>
+            )}
 
             {wordLoading && <p className="text-gray-500 text-sm">불러오는 중...</p>}
             {wordError && <p className="text-red-600 text-sm">{wordError}</p>}
@@ -192,19 +224,21 @@ export function PassageViewer({
                   <p className="text-lg font-bold text-gray-900">{wordData.koreanMeaning}</p>
                 )}
 
-                <div className="space-y-2">
+                <div className="space-y-3">
                   {wordData.definitions.length === 0 && !wordData.koreanMeaning && (
                     <p className="text-gray-500">뜻풀이를 찾을 수 없습니다.</p>
                   )}
-                  {wordData.definitions.length > 0 && (
-                    <p className="text-xs font-semibold text-gray-400">영어 풀이</p>
-                  )}
                   {wordData.definitions.map((d, i) => (
                     <div key={i}>
-                      <p className="font-semibold text-blue-700">{d.partOfSpeech}</p>
-                      <ul className="list-disc list-inside text-gray-700">
+                      <p className="font-semibold text-blue-700">
+                        {POS_KO[d.partOfSpeech] ?? d.partOfSpeech}
+                      </p>
+                      <ul className="list-disc list-inside space-y-1 text-gray-700">
                         {d.meanings.map((m, j) => (
-                          <li key={j}>{m}</li>
+                          <li key={j}>
+                            <span>{m.ko ?? m.en}</span>
+                            {m.ko && <span className="block text-xs text-gray-400 pl-4">{m.en}</span>}
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -214,13 +248,13 @@ export function PassageViewer({
                 {wordData.synonyms.length > 0 && (
                   <p>
                     <span className="font-semibold">동의어: </span>
-                    {wordData.synonyms.join(", ")}
+                    <TranslatedList items={wordData.synonyms} />
                   </p>
                 )}
                 {wordData.antonyms.length > 0 && (
                   <p>
                     <span className="font-semibold">반의어: </span>
-                    {wordData.antonyms.join(", ")}
+                    <TranslatedList items={wordData.antonyms} />
                   </p>
                 )}
 

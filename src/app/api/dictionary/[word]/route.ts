@@ -24,6 +24,7 @@ export async function GET(
   if (cached?.koreanMeaning) {
     return NextResponse.json({
       word: cached.word,
+      resolvedWord: cached.resolvedWord,
       koreanMeaning: cached.koreanMeaning,
       definitions: JSON.parse(cached.definition),
       synonyms: JSON.parse(cached.synonyms),
@@ -36,10 +37,13 @@ export async function GET(
     return NextResponse.json({ error: "사전에서 단어를 찾을 수 없습니다." }, { status: 404 });
   }
 
+  const resolvedWord = entry.word !== raw ? entry.word : null;
+
   await prisma.word
     .upsert({
       where: { word: raw },
       update: {
+        resolvedWord,
         definition: JSON.stringify(entry.definitions),
         synonyms: JSON.stringify(entry.synonyms),
         antonyms: JSON.stringify(entry.antonyms),
@@ -47,6 +51,7 @@ export async function GET(
       },
       create: {
         word: raw,
+        resolvedWord,
         definition: JSON.stringify(entry.definitions),
         synonyms: JSON.stringify(entry.synonyms),
         antonyms: JSON.stringify(entry.antonyms),
@@ -55,5 +60,5 @@ export async function GET(
     })
     .catch(() => null); // benign race: another request already wrote this word
 
-  return NextResponse.json(entry);
+  return NextResponse.json({ ...entry, word: raw, resolvedWord });
 }

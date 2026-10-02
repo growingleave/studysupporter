@@ -3,15 +3,21 @@
 import Link from "next/link";
 import { useState } from "react";
 
+type Translated = { en: string; ko: string | null };
+
 type VocabEntry = {
   word: string;
   passageId: number | null;
   passageTitle: string | null;
   koreanMeaning: string | null;
-  definitions: { partOfSpeech: string; meanings: string[] }[];
-  synonyms: string[];
-  antonyms: string[];
+  definitions: { partOfSpeech: string; meanings: Translated[] }[];
+  synonyms: Translated[];
+  antonyms: Translated[];
 };
+
+function joinTranslated(items: Translated[]) {
+  return items.map((item) => (item.ko ? `${item.en}(${item.ko})` : item.en)).join(", ");
+}
 
 type StarredEntry = { id: number; title: string };
 
@@ -69,14 +75,14 @@ export function MyPageTabs({
                   {v.definitions.slice(0, 1).map((d, i) => (
                     <p key={i} className="text-gray-700">
                       <span className="font-medium text-blue-700">{d.partOfSpeech}</span>{" "}
-                      {d.meanings[0]}
+                      {d.meanings[0]?.ko ?? d.meanings[0]?.en}
                     </p>
                   ))}
                   {v.synonyms.length > 0 && (
-                    <p className="text-gray-600">동의어: {v.synonyms.join(", ")}</p>
+                    <p className="text-gray-600">동의어: {joinTranslated(v.synonyms)}</p>
                   )}
                   {v.antonyms.length > 0 && (
-                    <p className="text-gray-600">반의어: {v.antonyms.join(", ")}</p>
+                    <p className="text-gray-600">반의어: {joinTranslated(v.antonyms)}</p>
                   )}
                   {v.passageId && v.passageTitle && (
                     <Link

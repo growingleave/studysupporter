@@ -1,11 +1,13 @@
 import lemmatizer from "wink-lemmatizer";
 
+type Translated = { en: string; ko: string | null };
+
 export type DictionaryEntry = {
-  word: string;
-  koreanMeaning: string | null;
-  definitions: { partOfSpeech: string; meanings: string[] }[];
-  synonyms: string[];
-  antonyms: string[];
+  word: string; // resolved base form (English)
+  koreanMeaning: string | null; // Korean gloss of the base form
+  definitions: { partOfSpeech: string; meanings: Translated[] }[];
+  synonyms: Translated[];
+  antonyms: Translated[];
 };
 
 const WORD_RE = /^[a-zA-Z][a-zA-Z'-]{0,44}$/;
@@ -13,6 +15,9 @@ const WORD_RE = /^[a-zA-Z][a-zA-Z'-]{0,44}$/;
 export function isValidWord(word: string): boolean {
   return WORD_RE.test(word);
 }
+
+const UA =
+  "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
 
 type FreeDictionaryMeaning = {
   partOfSpeech: string;
@@ -96,45 +101,6 @@ async function fetchDatamuseDefinitions(word: string) {
   }
 }
 
-async function translateToKorean(word: string): Promise<string | null> {
-  try {
-    const res = await fetch(
-      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q=${encodeURIComponent(word)}`,
-      {
-        signal: AbortSignal.timeout(5000),
-        headers: {
-          "User-Agent":
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-        },
-      }
-    );
-    if (!res.ok) {
-      console.error(`[translateToKorean] "${word}" -> HTTP ${res.status}`);
-      return null;
-    }
-
-    // Shape: [[["<translated>", "<original>", null, null, ...], ...], ...]
-    const data = (await res.json()) as unknown;
-    const text = Array.isArray(data) && Array.isArray(data[0]) && Array.isArray(data[0][0])
-      ? String(data[0][0][0] ?? "").trim()
-      : "";
-    if (!text) {
-      console.error(`[translateToKorean] "${word}" -> unexpected response shape: ${JSON.stringify(data).slice(0, 200)}`);
-      return null;
-    }
-    // Must contain actual Hangul, not an echoed-back English string.
-    if (!/[가-힣]/.test(text)) {
-      console.error(`[translateToKorean] "${word}" -> non-Hangul result: ${text}`);
-      return null;
-    }
-
-    return text;
-  } catch (err) {
-    console.error(`[translateToKorean] "${word}" -> threw:`, err);
-    return null;
-  }
-}
-
 async function fetchDatamuse(word: string, rel: "rel_syn" | "rel_ant") {
   try {
     const res = await fetch(
@@ -163,6 +129,45 @@ function lemmaCandidates(word: string): string[] {
   return [...candidates];
 }
 
+// Translates every text in `texts` in a single request (joined by
+// newlines - Google's endpoint splits and translates each line
+// separately and preserves order), so a whole word lookup costs one
+// translation call no matter how many definitions/synonyms it has.
+async function translateBatchToKorean(texts: string[]): Promise<(string | null)[]> {
+  if (texts.length === 0) return [];
+
+  try {
+    const joined = texts.map((t) => (t.trim() || ".").replace(/\n/g, " ")).join("\n");
+    const res = await fetch(
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q=${encodeURIComponent(joined)}`,
+      { signal: AbortSignal.timeout(8000), headers: { "User-Agent": UA } }
+    );
+
+    if (!res.ok) {
+      console.error(`[translateBatchToKorean] HTTP ${res.status}`);
+      return texts.map(() => null);
+    }
+
+    const data = (await res.json()) as unknown;
+    const segments = Array.isArray(data) && Array.isArray(data[0]) ? (data[0] as unknown[]) : [];
+
+    if (segments.length !== texts.length) {
+      console.error(
+        `[translateBatchToKorean] segment mismatch: sent ${texts.length}, got ${segments.length}`
+      );
+    }
+
+    return texts.map((_, i) => {
+      const seg = segments[i];
+      const text = Array.isArray(seg) ? String(seg[0] ?? "").trim() : "";
+      return text && /[가-힣]/.test(text) ? text : null;
+    });
+  } catch (err) {
+    console.error("[translateBatchToKorean] threw:", err);
+    return texts.map(() => null);
+  }
+}
+
 export async function lookupWord(word: string): Promise<DictionaryEntry | null> {
   let resolvedWord = word;
   let defResult = await fetchDefinitions(word);
@@ -187,29 +192,39 @@ export async function lookupWord(word: string): Promise<DictionaryEntry | null> 
     }
   }
 
-  const [datamuseSyn, datamuseAnt, koreanMeaning] = await Promise.all([
+  const [datamuseSyn, datamuseAnt] = await Promise.all([
     fetchDatamuse(resolvedWord, "rel_syn"),
     fetchDatamuse(resolvedWord, "rel_ant"),
-    translateToKorean(resolvedWord),
   ]);
-
-  if (
-    defResult.definitions.length === 0 &&
-    datamuseSyn.length === 0 &&
-    datamuseAnt.length === 0 &&
-    !koreanMeaning
-  ) {
-    return null;
-  }
 
   const synonyms = [...new Set([...defResult.inlineSynonyms, ...datamuseSyn])].slice(0, 8);
   const antonyms = [...new Set([...defResult.inlineAntonyms, ...datamuseAnt])].slice(0, 8);
 
+  if (defResult.definitions.length === 0 && synonyms.length === 0 && antonyms.length === 0) {
+    return null;
+  }
+
+  // One combined batch: [headword, ...every meaning, ...synonyms, ...antonyms]
+  const meaningTexts = defResult.definitions.flatMap((d) => d.meanings);
+  const batchInput = [resolvedWord, ...meaningTexts, ...synonyms, ...antonyms];
+  const translated = await translateBatchToKorean(batchInput);
+
+  let i = 0;
+  const koreanMeaning = translated[i++] ?? null;
+
+  const definitions = defResult.definitions.map((d) => ({
+    partOfSpeech: d.partOfSpeech,
+    meanings: d.meanings.map((en): Translated => ({ en, ko: translated[i++] ?? null })),
+  }));
+
+  const synonymsTranslated = synonyms.map((en): Translated => ({ en, ko: translated[i++] ?? null }));
+  const antonymsTranslated = antonyms.map((en): Translated => ({ en, ko: translated[i++] ?? null }));
+
   return {
     word: resolvedWord,
     koreanMeaning,
-    definitions: defResult.definitions,
-    synonyms,
-    antonyms,
+    definitions,
+    synonyms: synonymsTranslated,
+    antonyms: antonymsTranslated,
   };
 }
