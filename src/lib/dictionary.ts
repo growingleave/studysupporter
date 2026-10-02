@@ -22,42 +22,52 @@ type FreeDictionaryResponse = {
 }[];
 
 async function fetchDefinitions(word: string) {
-  const res = await fetch(
-    `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
-    { signal: AbortSignal.timeout(8000) }
-  );
+  const empty = { definitions: [], inlineSynonyms: [], inlineAntonyms: [] };
 
-  if (!res.ok) return { definitions: [], inlineSynonyms: [], inlineAntonyms: [] };
+  try {
+    const res = await fetch(
+      `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
+      { signal: AbortSignal.timeout(8000) }
+    );
 
-  const data = (await res.json()) as FreeDictionaryResponse;
-  const definitions: { partOfSpeech: string; meanings: string[] }[] = [];
-  const inlineSynonyms = new Set<string>();
-  const inlineAntonyms = new Set<string>();
+    if (!res.ok) return empty;
 
-  for (const entry of data) {
-    for (const meaning of entry.meanings ?? []) {
-      const meanings = (meaning.definitions ?? []).map((d) => d.definition).filter(Boolean);
-      if (meanings.length > 0) {
-        definitions.push({ partOfSpeech: meaning.partOfSpeech, meanings });
-      }
-      for (const d of meaning.definitions ?? []) {
-        for (const s of d.synonyms ?? []) inlineSynonyms.add(s);
-        for (const a of d.antonyms ?? []) inlineAntonyms.add(a);
+    const data = (await res.json()) as FreeDictionaryResponse;
+    const definitions: { partOfSpeech: string; meanings: string[] }[] = [];
+    const inlineSynonyms = new Set<string>();
+    const inlineAntonyms = new Set<string>();
+
+    for (const entry of data) {
+      for (const meaning of entry.meanings ?? []) {
+        const meanings = (meaning.definitions ?? []).map((d) => d.definition).filter(Boolean);
+        if (meanings.length > 0) {
+          definitions.push({ partOfSpeech: meaning.partOfSpeech, meanings });
+        }
+        for (const d of meaning.definitions ?? []) {
+          for (const s of d.synonyms ?? []) inlineSynonyms.add(s);
+          for (const a of d.antonyms ?? []) inlineAntonyms.add(a);
+        }
       }
     }
-  }
 
-  return { definitions, inlineSynonyms: [...inlineSynonyms], inlineAntonyms: [...inlineAntonyms] };
+    return { definitions, inlineSynonyms: [...inlineSynonyms], inlineAntonyms: [...inlineAntonyms] };
+  } catch {
+    return empty;
+  }
 }
 
 async function fetchDatamuse(word: string, rel: "rel_syn" | "rel_ant") {
-  const res = await fetch(
-    `https://api.datamuse.com/words?${rel}=${encodeURIComponent(word)}&max=8`,
-    { signal: AbortSignal.timeout(8000) }
-  );
-  if (!res.ok) return [];
-  const data = (await res.json()) as { word: string }[];
-  return data.map((d) => d.word);
+  try {
+    const res = await fetch(
+      `https://api.datamuse.com/words?${rel}=${encodeURIComponent(word)}&max=8`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (!res.ok) return [];
+    const data = (await res.json()) as { word: string }[];
+    return data.map((d) => d.word);
+  } catch {
+    return [];
+  }
 }
 
 export async function lookupWord(word: string): Promise<DictionaryEntry | null> {

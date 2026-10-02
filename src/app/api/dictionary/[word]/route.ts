@@ -33,14 +33,16 @@ export async function GET(
     return NextResponse.json({ error: "사전에서 단어를 찾을 수 없습니다." }, { status: 404 });
   }
 
-  await prisma.word.create({
-    data: {
-      word: raw,
-      definition: JSON.stringify(entry.definitions),
-      synonyms: JSON.stringify(entry.synonyms),
-      antonyms: JSON.stringify(entry.antonyms),
-    },
-  });
+  await prisma.word
+    .create({
+      data: {
+        word: raw,
+        definition: JSON.stringify(entry.definitions),
+        synonyms: JSON.stringify(entry.synonyms),
+        antonyms: JSON.stringify(entry.antonyms),
+      },
+    })
+    .catch(() => null); // benign race: another request already cached this word
 
   return NextResponse.json(entry);
 }
