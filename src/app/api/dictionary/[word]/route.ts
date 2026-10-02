@@ -19,9 +19,9 @@ export async function GET(
   }
 
   const cached = await prisma.word.findUnique({ where: { word: raw } });
-  // Only trust the cache if it actually has a definition or a Korean meaning -
-  // earlier lookups that came up empty shouldn't stick forever.
-  if (cached && (JSON.parse(cached.definition).length > 0 || cached.koreanMeaning)) {
+  // Only trust the cache once it has a Korean meaning - rows cached before
+  // that feature existed (or from a failed earlier lookup) need a refetch.
+  if (cached?.koreanMeaning) {
     return NextResponse.json({
       word: cached.word,
       koreanMeaning: cached.koreanMeaning,

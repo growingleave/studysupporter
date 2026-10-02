@@ -99,16 +99,19 @@ async function fetchDatamuseDefinitions(word: string) {
 async function translateToKorean(word: string): Promise<string | null> {
   try {
     const res = await fetch(
-      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|ko`,
-      { signal: AbortSignal.timeout(8000) }
+      `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q=${encodeURIComponent(word)}`,
+      { signal: AbortSignal.timeout(5000) }
     );
     if (!res.ok) return null;
 
-    const data = (await res.json()) as { responseData?: { translatedText?: string } };
-    const text = data.responseData?.translatedText?.trim();
+    // Shape: [[["<translated>", "<original>", null, null, ...], ...], ...]
+    const data = (await res.json()) as unknown;
+    const text = Array.isArray(data) && Array.isArray(data[0]) && Array.isArray(data[0][0])
+      ? String(data[0][0][0] ?? "").trim()
+      : "";
     if (!text) return null;
-    // MyMemory echoes the input back untranslated when it has nothing better
-    if (text.toLowerCase() === word.toLowerCase()) return null;
+    // Must contain actual Hangul, not an echoed-back English string.
+    if (!/[가-힣]/.test(text)) return null;
 
     return text;
   } catch {
