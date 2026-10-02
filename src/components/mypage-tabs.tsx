@@ -16,7 +16,7 @@ type VocabEntry = {
 };
 
 function joinTranslated(items: Translated[]) {
-  return items.map((item) => (item.ko ? `${item.en}(${item.ko})` : item.en)).join(", ");
+  return items.map((item) => item.ko ?? item.en).join(", ");
 }
 
 type StarredEntry = { id: number; title: string };

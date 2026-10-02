@@ -39,8 +39,7 @@ function TranslatedList({ items }: { items: Translated[] }) {
     <>
       {items.map((item, i) => (
         <span key={item.en}>
-          {item.en}
-          {item.ko && <span className="text-gray-500">({item.ko})</span>}
+          {item.ko ?? item.en}
           {i < items.length - 1 && ", "}
         </span>
       ))}
@@ -211,10 +210,6 @@ export function PassageViewer({
                 ×
               </button>
             </div>
-            {wordData?.resolvedWord && (
-              <p className="text-xs text-gray-500 mb-2">원형: {wordData.resolvedWord}</p>
-            )}
-
             {wordLoading && <p className="text-gray-500 text-sm">불러오는 중...</p>}
             {wordError && <p className="text-red-600 text-sm">{wordError}</p>}
 
@@ -235,10 +230,7 @@ export function PassageViewer({
                       </p>
                       <ul className="list-disc list-inside space-y-1 text-gray-700">
                         {d.meanings.map((m, j) => (
-                          <li key={j}>
-                            <span>{m.ko ?? m.en}</span>
-                            {m.ko && <span className="block text-xs text-gray-400 pl-4">{m.en}</span>}
-                          </li>
+                          <li key={j}>{m.ko ?? m.en}</li>
                         ))}
                       </ul>
                     </div>
