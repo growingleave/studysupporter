@@ -2,6 +2,7 @@ import lemmatizer from "wink-lemmatizer";
 
 export type DictionaryEntry = {
   word: string;
+  koreanMeaning: string | null;
   definitions: { partOfSpeech: string; meanings: string[] }[];
   synonyms: string[];
   antonyms: string[];
@@ -95,6 +96,26 @@ async function fetchDatamuseDefinitions(word: string) {
   }
 }
 
+async function translateToKorean(word: string): Promise<string | null> {
+  try {
+    const res = await fetch(
+      `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|ko`,
+      { signal: AbortSignal.timeout(8000) }
+    );
+    if (!res.ok) return null;
+
+    const data = (await res.json()) as { responseData?: { translatedText?: string } };
+    const text = data.responseData?.translatedText?.trim();
+    if (!text) return null;
+    // MyMemory echoes the input back untranslated when it has nothing better
+    if (text.toLowerCase() === word.toLowerCase()) return null;
+
+    return text;
+  } catch {
+    return null;
+  }
+}
+
 async function fetchDatamuse(word: string, rel: "rel_syn" | "rel_ant") {
   try {
     const res = await fetch(
@@ -147,12 +168,18 @@ export async function lookupWord(word: string): Promise<DictionaryEntry | null> 
     }
   }
 
-  const [datamuseSyn, datamuseAnt] = await Promise.all([
+  const [datamuseSyn, datamuseAnt, koreanMeaning] = await Promise.all([
     fetchDatamuse(resolvedWord, "rel_syn"),
     fetchDatamuse(resolvedWord, "rel_ant"),
+    translateToKorean(resolvedWord),
   ]);
 
-  if (defResult.definitions.length === 0 && datamuseSyn.length === 0 && datamuseAnt.length === 0) {
+  if (
+    defResult.definitions.length === 0 &&
+    datamuseSyn.length === 0 &&
+    datamuseAnt.length === 0 &&
+    !koreanMeaning
+  ) {
     return null;
   }
 
@@ -161,6 +188,7 @@ export async function lookupWord(word: string): Promise<DictionaryEntry | null> 
 
   return {
     word: resolvedWord,
+    koreanMeaning,
     definitions: defResult.definitions,
     synonyms,
     antonyms,

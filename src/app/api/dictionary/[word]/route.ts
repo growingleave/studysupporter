@@ -19,11 +19,12 @@ export async function GET(
   }
 
   const cached = await prisma.word.findUnique({ where: { word: raw } });
-  // Only trust the cache if it actually has a definition - earlier lookups
-  // that came up empty (upstream flakiness, etc.) shouldn't stick forever.
-  if (cached && JSON.parse(cached.definition).length > 0) {
+  // Only trust the cache if it actually has a definition or a Korean meaning -
+  // earlier lookups that came up empty shouldn't stick forever.
+  if (cached && (JSON.parse(cached.definition).length > 0 || cached.koreanMeaning)) {
     return NextResponse.json({
       word: cached.word,
+      koreanMeaning: cached.koreanMeaning,
       definitions: JSON.parse(cached.definition),
       synonyms: JSON.parse(cached.synonyms),
       antonyms: JSON.parse(cached.antonyms),
@@ -42,12 +43,14 @@ export async function GET(
         definition: JSON.stringify(entry.definitions),
         synonyms: JSON.stringify(entry.synonyms),
         antonyms: JSON.stringify(entry.antonyms),
+        koreanMeaning: entry.koreanMeaning,
       },
       create: {
         word: raw,
         definition: JSON.stringify(entry.definitions),
         synonyms: JSON.stringify(entry.synonyms),
         antonyms: JSON.stringify(entry.antonyms),
+        koreanMeaning: entry.koreanMeaning,
       },
     })
     .catch(() => null); // benign race: another request already wrote this word

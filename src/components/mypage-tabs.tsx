@@ -7,6 +7,7 @@ type VocabEntry = {
   word: string;
   passageId: number | null;
   passageTitle: string | null;
+  koreanMeaning: string | null;
   definitions: { partOfSpeech: string; meanings: string[] }[];
   synonyms: string[];
   antonyms: string[];
@@ -62,6 +63,9 @@ export function MyPageTabs({
               <div className="flex items-start justify-between">
                 <div className="flex-1 space-y-1 text-sm">
                   <p className="text-lg font-semibold">{v.word}</p>
+                  {v.koreanMeaning && (
+                    <p className="font-medium text-gray-900">{v.koreanMeaning}</p>
+                  )}
                   {v.definitions.slice(0, 1).map((d, i) => (
                     <p key={i} className="text-gray-700">
                       <span className="font-medium text-blue-700">{d.partOfSpeech}</span>{" "}

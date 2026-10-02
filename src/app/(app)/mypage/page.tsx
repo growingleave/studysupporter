@@ -30,6 +30,7 @@ export default async function MyPagePage() {
       word: v.word,
       passageId: v.passage?.id ?? null,
       passageTitle: v.passage?.title ?? null,
+      koreanMeaning: cached?.koreanMeaning ?? null,
       definitions: cached ? JSON.parse(cached.definition) : [],
       synonyms: cached ? JSON.parse(cached.synonyms) : [],
       antonyms: cached ? JSON.parse(cached.antonyms) : [],

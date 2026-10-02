@@ -37,12 +37,13 @@ model PassageAnalysis {
 }
 
 model Word {
-  id         String   @id @default(cuid())
-  word       String   @unique
-  definition String
-  synonyms   String
-  antonyms   String
-  fetchedAt  DateTime @default(now())
+  id             String   @id @default(cuid())
+  word           String   @unique
+  definition     String
+  synonyms       String
+  antonyms       String
+  koreanMeaning  String?
+  fetchedAt      DateTime @default(now())
 }
 
 model UserVocabulary {

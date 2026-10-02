@@ -11,6 +11,7 @@ type Analysis = {
 
 type DictionaryEntry = {
   word: string;
+  koreanMeaning: string | null;
   definitions: { partOfSpeech: string; meanings: string[] }[];
   synonyms: string[];
   antonyms: string[];
@@ -187,9 +188,16 @@ export function PassageViewer({
 
             {wordData && (
               <div className="space-y-4 text-sm">
+                {wordData.koreanMeaning && (
+                  <p className="text-lg font-bold text-gray-900">{wordData.koreanMeaning}</p>
+                )}
+
                 <div className="space-y-2">
-                  {wordData.definitions.length === 0 && (
+                  {wordData.definitions.length === 0 && !wordData.koreanMeaning && (
                     <p className="text-gray-500">뜻풀이를 찾을 수 없습니다.</p>
+                  )}
+                  {wordData.definitions.length > 0 && (
+                    <p className="text-xs font-semibold text-gray-400">영어 풀이</p>
                   )}
                   {wordData.definitions.map((d, i) => (
                     <div key={i}>
