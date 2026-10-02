@@ -15,6 +15,27 @@ export type DictionaryEntry = {
   definitions: { partOfSpeech: string; meanings: Meaning[] }[];
 };
 
+// Bumped whenever the shape stored in Word.definition changes, so rows
+// cached under an older shape get refetched instead of being handed to
+// a client (or page) that expects the current shape.
+const DEFINITION_SCHEMA_VERSION = 2;
+
+export function serializeDefinitions(definitions: DictionaryEntry["definitions"]): string {
+  return JSON.stringify({ v: DEFINITION_SCHEMA_VERSION, definitions });
+}
+
+export function parseDefinitions(raw: string): DictionaryEntry["definitions"] | null {
+  try {
+    const parsed = JSON.parse(raw);
+    if (parsed?.v === DEFINITION_SCHEMA_VERSION && Array.isArray(parsed.definitions)) {
+      return parsed.definitions;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 const WORD_RE = /^[a-zA-Z][a-zA-Z'-]{0,44}$/;
 
 export function isValidWord(word: string): boolean {

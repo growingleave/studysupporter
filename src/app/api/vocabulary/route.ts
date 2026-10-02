@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidWord } from "@/lib/dictionary";
+import { isValidWord, parseDefinitions } from "@/lib/dictionary";
 
 export async function GET() {
   const session = await auth();
@@ -28,7 +28,7 @@ export async function GET() {
         passage: e.passage,
         createdAt: e.createdAt,
         koreanMeaning: cached?.koreanMeaning ?? null,
-        definitions: cached ? JSON.parse(cached.definition) : [],
+        definitions: cached ? parseDefinitions(cached.definition) ?? [] : [],
       };
     })
   );

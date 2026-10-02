@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
+import { parseDefinitions } from "@/lib/dictionary";
 import { MyPageTabs } from "@/components/mypage-tabs";
 
 export default async function MyPagePage() {
@@ -31,7 +32,7 @@ export default async function MyPagePage() {
       passageId: v.passage?.id ?? null,
       passageTitle: v.passage?.title ?? null,
       koreanMeaning: cached?.koreanMeaning ?? null,
-      definitions: cached ? JSON.parse(cached.definition) : [],
+      definitions: cached ? parseDefinitions(cached.definition) ?? [] : [],
     };
   });
 

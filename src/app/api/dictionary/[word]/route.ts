@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { isValidWord, lookupWord } from "@/lib/dictionary";
+import { isValidWord, lookupWord, parseDefinitions, serializeDefinitions } from "@/lib/dictionary";
 
 export async function GET(
   _request: Request,
@@ -19,13 +19,15 @@ export async function GET(
   }
 
   const cached = await prisma.word.findUnique({ where: { word: raw } });
-  // Only trust the cache once it has a Korean meaning - rows cached before
-  // that feature existed (or from a failed earlier lookup) need a refetch.
-  if (cached?.koreanMeaning) {
+  const cachedDefinitions = cached ? parseDefinitions(cached.definition) : null;
+
+  // Only trust the cache once it has a Korean meaning and matches the
+  // current schema version - older rows need a refetch.
+  if (cached?.koreanMeaning && cachedDefinitions) {
     return NextResponse.json({
       word: cached.word,
       koreanMeaning: cached.koreanMeaning,
-      definitions: JSON.parse(cached.definition),
+      definitions: cachedDefinitions,
     });
   }
 
@@ -35,13 +37,14 @@ export async function GET(
   }
 
   const resolvedWord = entry.word !== raw ? entry.word : null;
+  const definitionJson = serializeDefinitions(entry.definitions);
 
   await prisma.word
     .upsert({
       where: { word: raw },
       update: {
         resolvedWord,
-        definition: JSON.stringify(entry.definitions),
+        definition: definitionJson,
         synonyms: "[]",
         antonyms: "[]",
         koreanMeaning: entry.koreanMeaning,
@@ -49,7 +52,7 @@ export async function GET(
       create: {
         word: raw,
         resolvedWord,
-        definition: JSON.stringify(entry.definitions),
+        definition: definitionJson,
         synonyms: "[]",
         antonyms: "[]",
         koreanMeaning: entry.koreanMeaning,
