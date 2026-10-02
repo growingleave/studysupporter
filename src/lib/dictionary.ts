@@ -100,21 +100,37 @@ async function translateToKorean(word: string): Promise<string | null> {
   try {
     const res = await fetch(
       `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ko&dt=t&q=${encodeURIComponent(word)}`,
-      { signal: AbortSignal.timeout(5000) }
+      {
+        signal: AbortSignal.timeout(5000),
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+      }
     );
-    if (!res.ok) return null;
+    if (!res.ok) {
+      console.error(`[translateToKorean] "${word}" -> HTTP ${res.status}`);
+      return null;
+    }
 
     // Shape: [[["<translated>", "<original>", null, null, ...], ...], ...]
     const data = (await res.json()) as unknown;
     const text = Array.isArray(data) && Array.isArray(data[0]) && Array.isArray(data[0][0])
       ? String(data[0][0][0] ?? "").trim()
       : "";
-    if (!text) return null;
+    if (!text) {
+      console.error(`[translateToKorean] "${word}" -> unexpected response shape: ${JSON.stringify(data).slice(0, 200)}`);
+      return null;
+    }
     // Must contain actual Hangul, not an echoed-back English string.
-    if (!/[가-힣]/.test(text)) return null;
+    if (!/[가-힣]/.test(text)) {
+      console.error(`[translateToKorean] "${word}" -> non-Hangul result: ${text}`);
+      return null;
+    }
 
     return text;
-  } catch {
+  } catch (err) {
+    console.error(`[translateToKorean] "${word}" -> threw:`, err);
     return null;
   }
 }
