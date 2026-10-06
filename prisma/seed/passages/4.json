@@ -1,0 +1,38 @@
+{
+  "id": 4,
+  "title": "The Practical Value of Scientific Psychology",
+  "englishText": "Once scientists are able to control the value of variables in the laboratory through experimentation, control of variables outside the laboratory becomes possible. For scientific psychologists, this means that they are able to apply what they have learned in the laboratory to try to correct problem behaviors in the real world. Science has practical value when scientists can isolate independent variables and then manipulate them to change important parts of the world (i.e., dependent variables) in a manner that benefits humans or the world in which they live. For example, scientific psychologists have successfully applied the Law of Effect to the treatment of children with autism. Intensive interventions, begun at an early age, and based in large part on manipulating the consequences of their behavior, enable many such children to live relatively normal and happy lives.",
+  "analysis": {
+    "topic": "실험실에서 얻은 지식을 실세계에 적용해 문제 행동을 교정하는 과학심리학의 실용적 가치",
+    "sentences": [
+      {
+        "en": "Once scientists are able to control the value of variables in the laboratory through experimentation, control of variables outside the laboratory becomes possible.",
+        "ko": "일단 과학자들이 실험을 통해 실험실 안에서 변인의 값을 통제할 수 있게 되면, 실험실 밖에서의 변인 통제도 가능해진다."
+      },
+      {
+        "en": "For scientific psychologists, this means that they are able to apply what they have learned in the laboratory to try to correct problem behaviors in the real world.",
+        "ko": "과학심리학자들에게 있어 이는, 그들이 실험실에서 배운 것을 적용하여 실제 세계의 문제 행동을 바로잡으려 시도할 수 있다는 것을 의미한다.",
+        "isKey": true,
+        "label": "주제문",
+        "labelType": "major"
+      },
+      {
+        "en": "Science has practical value when scientists can isolate independent variables and then manipulate them to change important parts of the world (i.e., dependent variables) in a manner that benefits humans or the world in which they live.",
+        "ko": "과학자들이 독립변인을 분리해낸 다음 그것을 조작하여, 인간이나 그들이 사는 세상에 이로운 방식으로 세상의 중요한 부분들(= 종속변인)을 바꿀 수 있을 때, 과학은 실용적 가치를 지닌다.",
+        "label": "주제 부연",
+        "labelType": "minor"
+      },
+      {
+        "en": "For example, scientific psychologists have successfully applied the Law of Effect to the treatment of children with autism.",
+        "ko": "예를 들어, 과학심리학자들은 효과의 법칙(Law of Effect)을 자폐증이 있는 아동들의 치료에 성공적으로 적용해왔다.",
+        "label": "예시: 자폐 아동 치료",
+        "labelType": "major"
+      },
+      {
+        "en": "Intensive interventions, begun at an early age, and based in large part on manipulating the consequences of their behavior, enable many such children to live relatively normal and happy lives.",
+        "ko": "어린 나이에 시작되고 그들 행동의 결과(조작)에 크게 기반을 둔 집중적인 개입은, 그런 아동들(자폐 아동) 다수가 비교적 정상적이고 행복한 삶을 살 수 있게 해준다."
+      }
+    ],
+    "summaryTranslation": "실험실에서 변인을 통제하는 법을 익힌 과학심리학자들은 그 지식을 실제 세계에 적용해 문제 행동을 교정할 수 있다. 자폐 아동에게 효과의 법칙을 적용한 행동 개입이 그 대표적인 예다."
+  }
+}
