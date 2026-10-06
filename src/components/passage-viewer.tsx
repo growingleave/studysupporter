@@ -60,6 +60,33 @@ const POS_KO: Record<string, string> = {
   determiner: "한정사",
 };
 
+function escapeRegExp(s: string) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+// Wraps any idiom/figurative/symbolic expression found in `text` with a
+// highlighter-style <mark>, so it stands out the same way a key sentence
+// or a transition does, just in its own color.
+function highlightIdioms(text: string, idioms: Idiom[]) {
+  const expressions = idioms.map((idiom) => idiom.expression).filter(Boolean);
+  if (expressions.length === 0) return text;
+
+  const pattern = expressions.map(escapeRegExp).join("|");
+  const regex = new RegExp(`(${pattern})`, "gi");
+  const parts = text.split(regex);
+  const expressionSet = new Set(expressions.map((e) => e.toLowerCase()));
+
+  return parts.map((part, i) =>
+    expressionSet.has(part.toLowerCase()) ? (
+      <mark key={i} className="bg-pink-200 rounded px-0.5">
+        {part}
+      </mark>
+    ) : (
+      <span key={i}>{part}</span>
+    )
+  );
+}
+
 function TranslatedList({ items }: { items: Translated[] }) {
   return (
     <>
@@ -192,25 +219,36 @@ export function PassageViewer({
           </p>
 
           <div className="space-y-3">
-            {analysis.sentences.map((s, i) => (
-              <div key={i} className={`rounded px-2 py-1.5 ${s.isKey ? "bg-yellow-200" : ""}`}>
-                <p className="text-gray-800 leading-relaxed">{s.en}</p>
-                <p className="text-gray-600 leading-relaxed">
-                  {s.ko}
-                  {s.label && (
-                    <span
-                      className={`ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${
-                        s.labelType === "major"
-                          ? "bg-orange-200 text-orange-900"
-                          : "bg-gray-200 text-gray-700"
-                      }`}
-                    >
-                      {s.label}
-                    </span>
-                  )}
-                </p>
-              </div>
-            ))}
+            {analysis.sentences.map((s, i) => {
+              const bgClass = s.isKey
+                ? "bg-yellow-200"
+                : s.labelType === "major"
+                  ? "bg-orange-100"
+                  : s.labelType === "minor"
+                    ? "bg-gray-100"
+                    : "";
+              return (
+                <div key={i} className={`rounded px-2 py-1.5 ${bgClass}`}>
+                  <p className="text-gray-800 leading-relaxed">
+                    {highlightIdioms(s.en, analysis.idioms)}
+                  </p>
+                  <p className="text-gray-600 leading-relaxed">
+                    {s.ko}
+                    {s.label && (
+                      <span
+                        className={`ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${
+                          s.labelType === "major"
+                            ? "bg-orange-200 text-orange-900"
+                            : "bg-gray-200 text-gray-700"
+                        }`}
+                      >
+                        {s.label}
+                      </span>
+                    )}
+                  </p>
+                </div>
+              );
+            })}
           </div>
 
           {analysis.idioms.length > 0 && (
