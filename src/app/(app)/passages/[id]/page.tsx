@@ -1,7 +1,13 @@
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { PassageViewer, type Analysis, type Sentence } from "@/components/passage-viewer";
+import {
+  PassageViewer,
+  type Analysis,
+  type Sentence,
+  type Idiom,
+  type Characteristic,
+} from "@/components/passage-viewer";
 
 export default async function PassageDetailPage({
   params,
@@ -27,7 +33,12 @@ export default async function PassageDetailPage({
   const analysis: Analysis | null = passage.analysis
     ? {
         topic: passage.analysis.topic,
+        topicSentenceKo: passage.analysis.topicSentenceKo,
+        predictedTitle: passage.analysis.predictedTitle,
         sentences: (passage.analysis.sentences as Sentence[] | null) ?? [],
+        idioms: (passage.analysis.idioms as Idiom[] | null) ?? [],
+        coreAnalysis: passage.analysis.coreAnalysis,
+        characteristics: (passage.analysis.characteristics as Characteristic[] | null) ?? [],
         summaryTranslation: passage.analysis.summaryTranslation,
       }
     : null;

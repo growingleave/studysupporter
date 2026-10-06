@@ -4,6 +4,8 @@
   "englishText": "This is a simple test passage. The weather today is very cold, but the students feel happy because class ends early. Some lessons are difficult, while others are easy. It is important to study every day, even when the material seems boring. A good student is never lazy, and always tries to finish tasks quickly.",
   "analysis": {
     "topic": "단어체크 기능 테스트를 위한 간단한 지문",
+    "topicSentenceKo": "어려운 수업이든 쉬운 수업이든 매일 꾸준히 공부하는 태도가 중요하다.",
+    "predictedTitle": "The Importance of Daily Study",
     "sentences": [
       {
         "en": "This is a simple test passage.",
@@ -30,6 +32,15 @@
         "en": "A good student is never lazy, and always tries to finish tasks quickly.",
         "ko": "좋은 학생은 절대 게으르지 않고, 항상 과제를 빠르게 끝내려고 노력한다."
       }
+    ],
+    "idioms": [],
+    "coreAnalysis": "날씨와 기분 묘사 → 수업 난이도 비교 → 꾸준한 학습 태도 강조 → 좋은 학생의 특징 설명으로 이어지는 단순 나열식 구조.",
+    "characteristics": [
+      { "label": "난이도", "description": "쉬움 — 기초 어휘 위주" },
+      { "label": "문법 난이도", "description": "단순한 문장 구조" },
+      { "label": "글의 성격", "description": "서술문" },
+      { "label": "내용 전환", "description": "가벼운 대조만 있음 (but, while)" },
+      { "label": "예상 문제 유형", "description": "실제 시험용이 아닌 단어체크 기능 테스트용 지문" }
     ],
     "summaryTranslation": "쉬운 단어(cold, happy, difficult, easy, important, boring, lazy, quickly 등)를 포함한 테스트용 지문으로, 사전 연동 단어체크 기능을 확인하기 위한 것이다."
   }

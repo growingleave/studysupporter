@@ -10,9 +10,24 @@ export type Sentence = {
   labelType?: "major" | "minor";
 };
 
+export type Idiom = {
+  expression: string;
+  meaning: string;
+};
+
+export type Characteristic = {
+  label: string;
+  description: string;
+};
+
 export type Analysis = {
   topic: string;
+  topicSentenceKo: string;
+  predictedTitle: string;
   sentences: Sentence[];
+  idioms: Idiom[];
+  coreAnalysis: string;
+  characteristics: Characteristic[];
   summaryTranslation: string | null;
 };
 
@@ -70,6 +85,7 @@ export function PassageViewer({
   initialStarred: boolean;
 }) {
   const [showAnalysis, setShowAnalysis] = useState(false);
+  const [showCharacteristics, setShowCharacteristics] = useState(false);
   const [wordCheckMode, setWordCheckMode] = useState(false);
   const [starred, setStarred] = useState(initialStarred);
   const [starLoading, setStarLoading] = useState(false);
@@ -148,6 +164,16 @@ export function PassageViewer({
           단어체크 {wordCheckMode ? "ON" : "OFF"}
         </button>
         <button
+          onClick={() => setShowCharacteristics((v) => !v)}
+          className={`rounded-full px-4 py-2 text-sm font-medium ${
+            showCharacteristics
+              ? "bg-blue-600 text-white"
+              : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+          }`}
+        >
+          지문특성
+        </button>
+        <button
           onClick={toggleStar}
           disabled={starLoading}
           className={`rounded-full px-4 py-2 text-sm font-medium ${
@@ -187,11 +213,65 @@ export function PassageViewer({
             ))}
           </div>
 
+          {analysis.idioms.length > 0 && (
+            <div className="border-t border-blue-200 pt-3">
+              <p className="font-semibold mb-1">숙어·비유·상징 표현</p>
+              <ul className="list-disc list-inside space-y-1 text-gray-700">
+                {analysis.idioms.map((idiom, i) => (
+                  <li key={i}>
+                    <span className="font-medium">{idiom.expression}</span> — {idiom.meaning}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {analysis.summaryTranslation && (
             <p className="whitespace-pre-wrap leading-relaxed border-t border-blue-200 pt-3">
               <span className="font-semibold">요약 해석: </span>
               {analysis.summaryTranslation}
             </p>
+          )}
+        </div>
+      )}
+
+      {showCharacteristics && analysis && (
+        <div className="mb-6 rounded-lg border border-purple-100 bg-purple-50 p-4 space-y-4 text-sm">
+          <p>
+            <span className="font-semibold">예상 제목: </span>
+            {analysis.predictedTitle}
+          </p>
+          <p>
+            <span className="font-semibold">주제문: </span>
+            {analysis.topicSentenceKo}
+          </p>
+          {analysis.summaryTranslation && (
+            <p className="whitespace-pre-wrap leading-relaxed">
+              <span className="font-semibold">요약: </span>
+              {analysis.summaryTranslation}
+            </p>
+          )}
+          <div>
+            <p className="font-semibold mb-1">핵심분석</p>
+            <p className="whitespace-pre-wrap leading-relaxed text-gray-700">
+              {analysis.coreAnalysis}
+            </p>
+          </div>
+
+          {analysis.characteristics.length > 0 && (
+            <div>
+              <p className="font-semibold mb-1">지문 특성</p>
+              <ul className="space-y-1 text-gray-700">
+                {analysis.characteristics.map((c, i) => (
+                  <li key={i}>
+                    <span className="inline-block rounded-full bg-purple-200 px-2 py-0.5 text-xs font-medium text-purple-900 mr-2">
+                      {c.label}
+                    </span>
+                    {c.description}
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}

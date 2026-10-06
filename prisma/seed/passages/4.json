@@ -4,6 +4,8 @@
   "englishText": "Once scientists are able to control the value of variables in the laboratory through experimentation, control of variables outside the laboratory becomes possible. For scientific psychologists, this means that they are able to apply what they have learned in the laboratory to try to correct problem behaviors in the real world. Science has practical value when scientists can isolate independent variables and then manipulate them to change important parts of the world (i.e., dependent variables) in a manner that benefits humans or the world in which they live. For example, scientific psychologists have successfully applied the Law of Effect to the treatment of children with autism. Intensive interventions, begun at an early age, and based in large part on manipulating the consequences of their behavior, enable many such children to live relatively normal and happy lives.",
   "analysis": {
     "topic": "실험실에서 얻은 지식을 실세계에 적용해 문제 행동을 교정하는 과학심리학의 실용적 가치",
+    "topicSentenceKo": "실험실에서 익힌 변인 통제 원리를 실제 세계의 문제 행동 교정에 적용할 때 과학은 실용적 가치를 가진다.",
+    "predictedTitle": "Applying Laboratory Science to Real-World Behavior",
     "sentences": [
       {
         "en": "Once scientists are able to control the value of variables in the laboratory through experimentation, control of variables outside the laboratory becomes possible.",
@@ -32,6 +34,21 @@
         "en": "Intensive interventions, begun at an early age, and based in large part on manipulating the consequences of their behavior, enable many such children to live relatively normal and happy lives.",
         "ko": "어린 나이에 시작되고 그들 행동의 결과(조작)에 크게 기반을 둔 집중적인 개입은, 그런 아동들(자폐 아동) 다수가 비교적 정상적이고 행복한 삶을 살 수 있게 해준다."
       }
+    ],
+    "idioms": [
+      {
+        "expression": "Law of Effect",
+        "meaning": "단어 그대로의 '효과의 법칙'이 아니라, 손다이크가 제시한 심리학 원리 — 만족스러운 결과를 가져오는 행동은 강화되고 그렇지 않은 행동은 약화된다는 특정 이론을 가리키는 고유 명칭."
+      }
+    ],
+    "coreAnalysis": "실험실 원리 소개 → 주제문(실세계 적용) → 재진술(독립/종속변인 조작) → 예시(자폐 아동 치료) → 예시 상세(개입 효과)로 이어지는 '원리-주제-재진술-예시' 구조. 빈칸추론 문제에서는 재진술 문장(3번)이 핵심 단서 역할을 한다.",
+    "characteristics": [
+      { "label": "난이도", "description": "어려움 — 추상적 개념과 심리학 전문 용어 다수" },
+      { "label": "어휘 수준", "description": "variables, isolate, manipulate, intervention 등 학술 어휘 다수" },
+      { "label": "문법 난이도", "description": "복잡한 명사구와 삽입구(i.e., ~) 포함" },
+      { "label": "글의 성격", "description": "설명문 (학술적)" },
+      { "label": "내용 전환", "description": "적음 — 일관된 논리 전개, 예시로 구체화" },
+      { "label": "예상 문제 유형", "description": "빈칸추론, 주제 추론, 어법" }
     ],
     "summaryTranslation": "실험실에서 변인을 통제하는 법을 익힌 과학심리학자들은 그 지식을 실제 세계에 적용해 문제 행동을 교정할 수 있다. 자폐 아동에게 효과의 법칙을 적용한 행동 개입이 그 대표적인 예다."
   }

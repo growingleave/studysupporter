@@ -32,10 +32,19 @@ model PassageAnalysis {
   passageId          Int     @unique
   passage            Passage @relation(fields: [passageId], references: [id], onDelete: Cascade)
   topic              String
+  topicSentenceKo    String // 주제문 (한국어 한 문장)
+  predictedTitle     String // 예상 제목 (영어)
   // Array of { en, ko, isKey, label, labelType }. Sentence-by-sentence
   // breakdown: English sentence immediately followed by its Korean
   // translation, with key-sentence highlighting and transition labels.
   sentences          Json
+  // Array of { expression, meaning } - idioms/비유/상징 표현 whose meaning
+  // isn't derivable from the literal words.
+  idioms             Json?
+  coreAnalysis       String // 핵심분석: 논리 전개(주장-근거-예시-결론 등) 설명
+  // Array of { label, description } - 지문특성 (난이도, 어휘 수준, 문법
+  // 난이도, 글의 성격, 내용 전환 여부, 예상 문제 유형, 비유/상징 표현 등)
+  characteristics    Json
   summaryTranslation String?
 }
 
