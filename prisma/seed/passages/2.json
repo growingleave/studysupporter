@@ -4,8 +4,49 @@
   "englishText": "Coral reefs cover less than one percent of the ocean floor, yet they support roughly a quarter of all marine species. These vibrant ecosystems are often called the rainforests of the sea because of their extraordinary biodiversity. Corals themselves are not plants but colonies of tiny animals that form a symbiotic relationship with algae living inside their tissues. The algae provide the coral with food through photosynthesis, while the coral offers the algae a protected home. This delicate partnership, however, is highly sensitive to changes in water temperature. When ocean water becomes too warm, corals expel the algae in a process known as bleaching, which leaves the coral white and vulnerable to starvation. If temperatures do not return to normal quickly, the coral eventually dies. Given that reefs also protect coastlines from storms and support fishing industries that millions of people depend on, their decline threatens far more than marine life alone.",
   "analysis": {
     "topic": "산호초 생태계의 중요성과 백화 현상으로 인한 위협",
-    "fullTranslation": "산호초는 해저 면적의 1퍼센트도 채 되지 않지만, 전체 해양 생물종의 약 4분의 1을 지탱한다. (도입: 놀라운 수치로 중요성 제시) 이 생동감 넘치는 생태계는 그 엄청난 생물다양성 때문에 흔히 바다의 열대우림이라고 불린다. 산호 자체는 식물이 아니라, 조직 안에 사는 조류와 공생 관계를 이루는 작은 동물들의 군체이다. 조류는 광합성을 통해 산호에게 먹이를 제공하고, 산호는 조류에게 보호받는 서식지를 제공한다. (설명: 공생관계의 메커니즘) 그러나 이 섬세한 동반자 관계는 수온 변화에 매우 민감하다. (반전: 취약성 제시) 바닷물이 너무 따뜻해지면 산호는 백화 현상이라고 알려진 과정을 통해 조류를 내보내는데, 이는 산호를 하얗게 만들고 굶주림에 취약하게 만든다. 수온이 빠르게 정상으로 돌아오지 않으면 산호는 결국 죽는다. 산호초가 해안선을 폭풍으로부터 보호하고 수백만 명이 의존하는 어업을 지탱한다는 점을 고려하면, 산호초의 쇠퇴는 해양 생물만이 아니라 훨씬 더 많은 것을 위협한다. (결론: 확장된 파급효과)",
-    "summaryTranslation": "산호초는 작은 면적에도 불구하고 엄청난 생물다양성을 지탱하는 생태계지만, 수온 상승으로 인한 백화 현상 때문에 위협받고 있으며, 이는 해양 생물뿐 아니라 해안 보호와 어업에도 큰 영향을 미친다.",
-    "keySentence": "Given that reefs also protect coastlines from storms and support fishing industries that millions of people depend on, their decline threatens far more than marine life alone."
+    "sentences": [
+      {
+        "en": "Coral reefs cover less than one percent of the ocean floor, yet they support roughly a quarter of all marine species.",
+        "ko": "산호초는 해저 면적의 1퍼센트도 채 되지 않지만, 전체 해양 생물종의 약 4분의 1을 지탱한다."
+      },
+      {
+        "en": "These vibrant ecosystems are often called the rainforests of the sea because of their extraordinary biodiversity.",
+        "ko": "이 생동감 넘치는 생태계(산호초)는 그 엄청난 생물다양성 때문에 흔히 바다의 열대우림이라고 불린다."
+      },
+      {
+        "en": "Corals themselves are not plants but colonies of tiny animals that form a symbiotic relationship with algae living inside their tissues.",
+        "ko": "산호 자체는 식물이 아니라, 조직 안에 사는 조류와 공생 관계를 이루는 작은 동물들의 군체이다.",
+        "label": "설명 시작",
+        "labelType": "minor"
+      },
+      {
+        "en": "The algae provide the coral with food through photosynthesis, while the coral offers the algae a protected home.",
+        "ko": "조류는 광합성을 통해 산호에게 먹이를 제공하고, 산호는 조류에게 보호받는 서식지를 제공한다."
+      },
+      {
+        "en": "This delicate partnership, however, is highly sensitive to changes in water temperature.",
+        "ko": "하지만 이 섬세한 동반자 관계(산호와 조류의 공생)는 수온 변화에 매우 민감하다.",
+        "label": "내용 전환",
+        "labelType": "major"
+      },
+      {
+        "en": "When ocean water becomes too warm, corals expel the algae in a process known as bleaching, which leaves the coral white and vulnerable to starvation.",
+        "ko": "바닷물이 너무 따뜻해지면 산호는 백화 현상이라고 알려진 과정을 통해 조류를 내보내는데, 이는 산호를 하얗게 만들고 굶주림에 취약하게 만든다.",
+        "label": "메커니즘 설명",
+        "labelType": "minor"
+      },
+      {
+        "en": "If temperatures do not return to normal quickly, the coral eventually dies.",
+        "ko": "수온이 빠르게 정상으로 돌아오지 않으면 산호는 결국 죽는다."
+      },
+      {
+        "en": "Given that reefs also protect coastlines from storms and support fishing industries that millions of people depend on, their decline threatens far more than marine life alone.",
+        "ko": "산호초가 해안선을 폭풍으로부터 보호하고 수백만 명이 의존하는 어업을 지탱한다는 점을 고려하면, 산호초의 쇠퇴는 해양 생물만이 아니라 훨씬 더 많은 것을 위협한다.",
+        "isKey": true,
+        "label": "결론/확장",
+        "labelType": "major"
+      }
+    ],
+    "summaryTranslation": "산호초는 작은 면적에도 불구하고 엄청난 생물다양성을 지탱하는 생태계지만, 수온 상승으로 인한 백화 현상 때문에 위협받고 있으며, 이는 해양 생물뿐 아니라 해안 보호와 어업에도 큰 영향을 미친다."
   }
 }

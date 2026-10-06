@@ -32,9 +32,11 @@ model PassageAnalysis {
   passageId          Int     @unique
   passage            Passage @relation(fields: [passageId], references: [id], onDelete: Cascade)
   topic              String
-  fullTranslation    String
+  // Array of { en, ko, isKey, label, labelType }. Sentence-by-sentence
+  // breakdown: English sentence immediately followed by its Korean
+  // translation, with key-sentence highlighting and transition labels.
+  sentences          Json
   summaryTranslation String?
-  keySentence        String
 }
 
 model Word {

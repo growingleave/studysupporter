@@ -2,11 +2,18 @@
 
 import { useState } from "react";
 
-type Analysis = {
+export type Sentence = {
+  en: string;
+  ko: string;
+  isKey?: boolean;
+  label?: string;
+  labelType?: "major" | "minor";
+};
+
+export type Analysis = {
   topic: string;
-  fullTranslation: string;
+  sentences: Sentence[];
   summaryTranslation: string | null;
-  keySentence: string;
 };
 
 type Translated = { en: string; ko: string | null };
@@ -152,25 +159,40 @@ export function PassageViewer({
       </div>
 
       {showAnalysis && analysis && (
-        <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4 space-y-3 text-sm">
+        <div className="mb-6 rounded-lg border border-blue-100 bg-blue-50 p-4 space-y-4 text-sm">
           <p>
             <span className="font-semibold">주제: </span>
             {analysis.topic}
           </p>
-          <p className="whitespace-pre-wrap leading-relaxed">
-            <span className="font-semibold">전문 해석: </span>
-            {analysis.fullTranslation}
-          </p>
+
+          <div className="space-y-3">
+            {analysis.sentences.map((s, i) => (
+              <div key={i} className={`rounded px-2 py-1.5 ${s.isKey ? "bg-yellow-200" : ""}`}>
+                <p className="text-gray-800 leading-relaxed">{s.en}</p>
+                <p className="text-gray-600 leading-relaxed">
+                  {s.ko}
+                  {s.label && (
+                    <span
+                      className={`ml-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap ${
+                        s.labelType === "major"
+                          ? "bg-orange-200 text-orange-900"
+                          : "bg-gray-200 text-gray-700"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  )}
+                </p>
+              </div>
+            ))}
+          </div>
+
           {analysis.summaryTranslation && (
-            <p className="whitespace-pre-wrap leading-relaxed">
+            <p className="whitespace-pre-wrap leading-relaxed border-t border-blue-200 pt-3">
               <span className="font-semibold">요약 해석: </span>
               {analysis.summaryTranslation}
             </p>
           )}
-          <p>
-            <span className="font-semibold">핵심 문장: </span>
-            {analysis.keySentence}
-          </p>
         </div>
       )}
 

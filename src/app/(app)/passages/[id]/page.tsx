@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/prisma";
-import { PassageViewer } from "@/components/passage-viewer";
+import { PassageViewer, type Analysis, type Sentence } from "@/components/passage-viewer";
 
 export default async function PassageDetailPage({
   params,
@@ -24,6 +24,14 @@ export default async function PassageDetailPage({
 
   if (!passage) notFound();
 
+  const analysis: Analysis | null = passage.analysis
+    ? {
+        topic: passage.analysis.topic,
+        sentences: (passage.analysis.sentences as Sentence[] | null) ?? [],
+        summaryTranslation: passage.analysis.summaryTranslation,
+      }
+    : null;
+
   return (
     <main className="mx-auto max-w-3xl px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">
@@ -32,7 +40,7 @@ export default async function PassageDetailPage({
       <PassageViewer
         passageId={passage.id}
         englishText={passage.englishText}
-        analysis={passage.analysis}
+        analysis={analysis}
         initialStarred={!!starred}
       />
     </main>

@@ -2,15 +2,22 @@ import fs from "node:fs";
 import path from "node:path";
 import type { PrismaClient } from "@prisma/client";
 
+export type SeedSentence = {
+  en: string;
+  ko: string;
+  isKey?: boolean;
+  label?: string; // e.g. "예시: 할로윈", "실험 시작", "내용 전환"
+  labelType?: "major" | "minor"; // major: 내용이 완전히 바뀜, minor: 가벼운 전환
+};
+
 export type SeedPassage = {
   id: number;
   title: string;
   englishText: string;
   analysis: {
     topic: string;
-    fullTranslation: string;
+    sentences: SeedSentence[];
     summaryTranslation?: string;
-    keySentence: string;
   };
 };
 
@@ -44,16 +51,14 @@ export async function seedPassages(prisma: PrismaClient): Promise<number[]> {
       where: { passageId: data.id },
       update: {
         topic: data.analysis.topic,
-        fullTranslation: data.analysis.fullTranslation,
+        sentences: data.analysis.sentences,
         summaryTranslation: data.analysis.summaryTranslation,
-        keySentence: data.analysis.keySentence,
       },
       create: {
         passageId: data.id,
         topic: data.analysis.topic,
-        fullTranslation: data.analysis.fullTranslation,
+        sentences: data.analysis.sentences,
         summaryTranslation: data.analysis.summaryTranslation,
-        keySentence: data.analysis.keySentence,
       },
     });
 
